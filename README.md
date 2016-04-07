@@ -1,9 +1,9 @@
 # Lisp
 Code based on tutorial from: www.buildyourownlisp.com
 
-## Code
+# Code
 
-### MinGW
+## MinGW
 Code is in C compiled on Windows using MinGW.
 Only two packages from mingw were used:
   - mingw32-base
@@ -11,8 +11,8 @@ Only two packages from mingw were used:
 
 To install them the _mingw-get install_ command was used.
 
-### Compiler
-The _gcc_ compiler was used in wersion:
+## Compiler
+The _gcc_ compiler was used in version:
 
 > gcc.exe (GCC) 4.9.3
 > Copyright (C) 2015 Free Software Foundation, Inc.
