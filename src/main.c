@@ -43,8 +43,8 @@ int main()
     // Read input
     read();
 
-    /* Echo input back to user */
-    printf("No you're a %s", input);
+    // Echo input back to user
+    printf("%s", input);
   }
 
   return 0;
