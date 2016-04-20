@@ -1,8 +1,47 @@
 #include <stdio.h>
+#include <stdlib.h>
+
+#define PROMPT "perl>"
+
+#ifdef _WIN32
+/*
+ * Windows only section
+ */
+
+#include <string.h>
 
 // buffer for user input
-#define INPUT_SIZE 2048
-static char input[INPUT_SIZE];
+#define _WIN32_READLINE_BUFFER_SIZE 2048
+static char _win32_readline_buffer[_WIN32_READLINE_BUFFER_SIZE];
+
+/*
+ * Imitation of readline function from editline library.
+ */
+char* readline(char* prompt) {
+  char* result = NULL;
+
+  fputs(prompt, stdout);
+  fgets(_win32_readline_buffer, _WIN32_READLINE_BUFFER_SIZE, stdin);
+
+  result = malloc(strlen(_win32_readline_buffer) + 1);
+  strcpy(result, _win32_readline_buffer);
+
+  return result;
+}
+
+/*
+ * Imitation of add_history function from editline library.
+ */
+#define add_history(foo)
+
+#else
+/*
+ * For other platforms (linux, mac) use editline library.
+ */
+#include <editline/readline.h>
+#include <editline/history.h>
+
+#endif
 
 /*
  * Prints version and exit informations
@@ -13,38 +52,23 @@ void print_header()
   puts("Press Ctrl+c to Exit\n");
 }
 
-/*
- * Prints prompt
- */
-void prompt()
-{
-  fputs("lispy> ", stdout);
-}
-
-/*
- * Reads data from user to input variable
- */
-void read()
-{
-  fgets(input, INPUT_SIZE, stdin);
-}
 
 int main()
 {
-  // Print header
+  // print header
   print_header();
 
-  // Main never ending loop
+  // main never ending loop
   while(1)
   {
-    // Show prompt
-    prompt();
+    // read input and save it in history
+    char* input = readline(PROMPT);
+    add_history(input);
 
-    // Read input
-    read();
-
-    // Echo input back to user
+    // echo input back to user
     printf("%s", input);
+
+    free(input);
   }
 
   return 0;
