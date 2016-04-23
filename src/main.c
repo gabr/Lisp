@@ -103,6 +103,90 @@ void int_handler(int sig)
 
 
 /*
+ * Result evaluation
+ */
+float evaluate_parsed_input(mpc_ast_t* node);
+float find_operand(mpc_ast_t* node);
+float evaluate_operand(mpc_ast_t* node,
+    int start, char operand);
+
+float evaluate_operand(mpc_ast_t* node,
+    int start, char operand)
+{
+  float tmp = 0.0f;
+  float result = 0.0f;
+  int found_first_number = 0;
+
+  for (int i = start; i < node->children_num; i++)
+  {
+    if (node->children[i]->contents[0] == '\0')
+    {
+      if (node->children[i]->children_num > 0)
+        tmp = find_operand(node->children[i]);
+      else
+        continue;
+    }
+
+    else if (node->children[i]->contents[0] == ')')
+      break;
+
+    else
+      tmp = strtod(node->children[i]->contents, NULL);
+
+    if (!found_first_number)
+    {
+      result = tmp;
+      found_first_number = 1;
+      continue;
+    }
+
+    switch(operand)
+    {
+      case '+':
+        result += tmp;
+        break;
+
+      case '-':
+        result -= tmp;
+        break;
+
+      case '*':
+        result *= tmp;
+        break;
+
+      case '/':
+        result /= tmp;
+        break;
+    }
+  }
+
+  return result;
+}
+
+float find_operand(mpc_ast_t* node)
+{
+  for (int i = 0; i < node->children_num; i++)
+  {
+    if (node->children[i]->contents[0] == '\0' ||
+        node->children[i]->contents[0] == '('  ||
+        node->children[i]->contents[0] == ')')
+      continue;
+
+    else
+      return evaluate_operand(node, i + 1,
+          node->children[i]->contents[0]);
+  }
+
+  return 0.0f;
+}
+
+float evaluate_parsed_input(mpc_ast_t* node)
+{
+  float result = find_operand(node);
+  return result;
+}
+
+/*
  * Prints version and exit informations
  */
 void print_header()
@@ -114,6 +198,11 @@ void print_header()
 
 int main()
 {
+  // variables for parsing result
+  mpc_result_t parsing_result;
+  mpc_ast_t* parsed_input;
+  float result = 0.0f;
+
   // Ctrl+C handling
   signal(SIGINT, int_handler);
 
@@ -123,18 +212,12 @@ int main()
   // create parser
   create_parser();
 
-  // variable for parsing result
-  mpc_result_t parsing_result;
-
   // main never ending loop
   while(1)
   {
     // read input and save it in history
     char* input = readline(PROMPT);
     add_history(input);
-
-    // echo input back to user
-    //printf("%s", input);
 
     // if exit the close the prompt
     if (strcmp(input, "exit\n") == 0)
@@ -149,9 +232,19 @@ int main()
     if (mpc_parse("<stdin>", input, Lisp, &parsing_result))
     {
       // parsing ok
-      // print AST
-      mpc_ast_print(parsing_result.output);
-      mpc_ast_delete(parsing_result.output);
+      parsed_input = parsing_result.output;
+
+      // print Abstract Syntax Tree
+      /*
+        mpc_ast_print(parsed_input);
+        mpc_ast_delete(parsed_input);
+       */
+
+      // calculate result
+      result = evaluate_parsed_input(parsed_input);
+
+      // print result
+      printf("%f\n", result);
     }
     else
     {
