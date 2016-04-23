@@ -65,7 +65,7 @@ void create_parser()
   /* Define them with the following Language */
   mpca_lang(MPCA_LANG_DEFAULT,
       "                                                     \
-        number   : /-?[0-9]+/ ;                             \
+        number   : /-?[0-9]+(!?\\.[0-9]+)?/ ;               \
         operator : '+' | '-' | '*' | '/' ;                  \
         expr     : <number> | '(' <operator> <expr>+ ')' ;  \
         lisp     : /^/ <operator> <expr>+ /$/ ;             \
