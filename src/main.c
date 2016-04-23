@@ -106,7 +106,6 @@ void int_handler(int sig)
  * Result evaluation
  */
 float evaluate_parsed_input(mpc_ast_t* node);
-float find_operand(mpc_ast_t* node);
 float evaluate_operand(mpc_ast_t* node,
     int start, char operand);
 
@@ -122,7 +121,7 @@ float evaluate_operand(mpc_ast_t* node,
     if (node->children[i]->contents[0] == '\0')
     {
       if (node->children[i]->children_num > 0)
-        tmp = find_operand(node->children[i]);
+        tmp = evaluate_parsed_input(node->children[i]);
       else
         continue;
     }
@@ -163,7 +162,7 @@ float evaluate_operand(mpc_ast_t* node,
   return result;
 }
 
-float find_operand(mpc_ast_t* node)
+float evaluate_parsed_input(mpc_ast_t* node)
 {
   for (int i = 0; i < node->children_num; i++)
   {
@@ -178,12 +177,6 @@ float find_operand(mpc_ast_t* node)
   }
 
   return 0.0f;
-}
-
-float evaluate_parsed_input(mpc_ast_t* node)
-{
-  float result = find_operand(node);
-  return result;
 }
 
 /*
