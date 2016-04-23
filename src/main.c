@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "mpc/mpc.h"
+
+
 #define PROMPT "perl>"
 
 #ifdef _WIN32
