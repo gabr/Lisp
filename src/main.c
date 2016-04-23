@@ -80,6 +80,11 @@ void cleanup_parser()
 
 /*
  * Ctrl+C handling
+ *
+ * To handle this signal the signal.h include
+ * is necessary as well as this function subscription
+ * at the beginning of the program:
+ *   signal(SIGINT, int_handler);
  */
 void int_handler(int sig)
 {
