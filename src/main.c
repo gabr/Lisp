@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <signal.h> // for Ctrl+C handling
 
 #include "mpc/mpc.h"
 
@@ -23,7 +24,7 @@ static char _win32_readline_buffer[_WIN32_READLINE_BUFFER_SIZE];
 char* readline(char* prompt) {
   char* result = NULL;
 
-  fputs(prompt, stdout);
+  printf("%s", prompt);
   fgets(_win32_readline_buffer, _WIN32_READLINE_BUFFER_SIZE, stdin);
 
   result = malloc(strlen(_win32_readline_buffer) + 1);
@@ -47,6 +48,56 @@ char* readline(char* prompt) {
 #endif
 
 /*
+ * Polish Notation parser
+ */
+static mpc_parser_t* Number;
+static mpc_parser_t* Operator;
+static mpc_parser_t* Expr;
+static mpc_parser_t* Lisp;
+
+void create_parser()
+{
+  Number   = mpc_new("number");
+  Operator = mpc_new("operator");
+  Expr     = mpc_new("expr");
+  Lisp     = mpc_new("lisp");
+
+  /* Define them with the following Language */
+  mpca_lang(MPCA_LANG_DEFAULT,
+      "                                                     \
+        number   : /-?[0-9]+/ ;                             \
+        operator : '+' | '-' | '*' | '/' ;                  \
+        expr     : <number> | '(' <operator> <expr>+ ')' ;  \
+        lisp     : /^/ <operator> <expr>+ /$/ ;             \
+      ",
+      Number, Operator, Expr, Lisp);
+}
+
+void cleanup_parser()
+{
+  mpc_cleanup(4, Number, Operator, Expr, Lisp);
+}
+
+/*
+ * Ctrl+C handling
+ */
+void int_handler(int sig)
+{
+  // produce new line
+  puts("");
+
+  // pass signal
+  signal(sig, SIG_IGN);
+
+  // cleanup parser
+  cleanup_parser();
+
+  // exit the program
+  exit(0);
+}
+
+
+/*
  * Prints version and exit informations
  */
 void print_header()
@@ -58,8 +109,14 @@ void print_header()
 
 int main()
 {
+  // Ctrl+C handling
+  signal(SIGINT, int_handler);
+
   // print header
   print_header();
+
+  // create parser
+  create_parser();
 
   // main never ending loop
   while(1)
@@ -71,6 +128,7 @@ int main()
     // echo input back to user
     printf("%s", input);
 
+    // free memory stored for input
     free(input);
   }
 
