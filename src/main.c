@@ -5,7 +5,7 @@
 #include "mpc/mpc.h"
 
 
-#define PROMPT "perl>"
+#define PROMPT "lisp>"
 
 #ifdef _WIN32
 /*
@@ -118,6 +118,9 @@ int main()
   // create parser
   create_parser();
 
+  // variable for parsing result
+  mpc_result_t parsing_result;
+
   // main never ending loop
   while(1)
   {
@@ -126,7 +129,32 @@ int main()
     add_history(input);
 
     // echo input back to user
-    printf("%s", input);
+    //printf("%s", input);
+
+    // if exit the close the prompt
+    if (strcmp(input, "exit\n") == 0)
+    {
+      // cleanup parser
+      cleanup_parser();
+
+      // break from the main loop - exit
+      break;
+    }
+
+    if (mpc_parse("<stdin>", input, Lisp, &parsing_result))
+    {
+      // parsing ok
+      // print AST
+      mpc_ast_print(parsing_result.output);
+      mpc_ast_delete(parsing_result.output);
+    }
+    else
+    {
+      // parsing error
+      // print error
+      mpc_err_print(parsing_result.error);
+      mpc_err_delete(parsing_result.error);
+    }
 
     // free memory stored for input
     free(input);

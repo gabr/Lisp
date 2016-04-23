@@ -3,7 +3,7 @@
 gcc  src\main.c     ^
      src\mpc\mpc.c  ^
     -std=c99        ^
-    -o bin\perl.exe ^
+    -o bin\lisp.exe ^
     -Wall           ^
     -Wextra         ^
     -Werror         ^
@@ -11,5 +11,5 @@ gcc  src\main.c     ^
 
 if NOT ERRORLEVEL 1 (
     echo.
-    .\bin\perl.exe
+    .\bin\lisp.exe
 )
