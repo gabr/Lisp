@@ -105,79 +105,42 @@ void int_handler(int sig)
 /*
  * Result evaluation
  */
-float evaluate_parsed_input(mpc_ast_t* node);
-float evaluate_operand(mpc_ast_t* node,
-    int start, char operand);
-
-float evaluate_operand(mpc_ast_t* node,
-    int start, char operand)
+float evaluate_operand(float x, char operand, float y)
 {
-  float tmp = 0.0f;
-  float result = 0.0f;
-  int found_first_number = 0;
-
-  for (int i = start; i < node->children_num; i++)
+  switch (operand)
   {
-    if (node->children[i]->contents[0] == '\0')
-    {
-      if (node->children[i]->children_num > 0)
-        tmp = evaluate_parsed_input(node->children[i]);
-      else
-        continue;
-    }
-
-    else if (node->children[i]->contents[0] == ')')
-      break;
-
-    else
-      tmp = strtod(node->children[i]->contents, NULL);
-
-    if (!found_first_number)
-    {
-      result = tmp;
-      found_first_number = 1;
-      continue;
-    }
-
-    switch(operand)
-    {
-      case '+':
-        result += tmp;
-        break;
-
-      case '-':
-        result -= tmp;
-        break;
-
-      case '*':
-        result *= tmp;
-        break;
-
-      case '/':
-        result /= tmp;
-        break;
-    }
-  }
-
-  return result;
-}
-
-float evaluate_parsed_input(mpc_ast_t* node)
-{
-  for (int i = 0; i < node->children_num; i++)
-  {
-    if (node->children[i]->contents[0] == '\0' ||
-        node->children[i]->contents[0] == '('  ||
-        node->children[i]->contents[0] == ')')
-      continue;
-
-    else
-      return evaluate_operand(node, i + 1,
-          node->children[i]->contents[0]);
+    case '+': return x + y;
+    case '-': return x - y;
+    case '*': return x * y;
+    case '/': return x / y;
   }
 
   return 0.0f;
 }
+
+float evaluate_parsed_input(mpc_ast_t* node)
+{
+  // if node is a number just parse and return it
+  if (strstr(node->tag, "number"))
+    return strtof(node->contents, NULL);
+
+  // if node is not a number then list of child nodes
+  // should contain operand at the second position
+  char operand = node->children[1]->contents[0];
+
+  // then the rest of the nodes will be expressions
+  // get the first one
+  float x = evaluate_parsed_input(node->children[2]);
+
+  // and iterate through rest of them
+  int i = 2;
+  while(++i, strstr(node->children[i]->tag, "expr"))
+    x = evaluate_operand(x, operand,
+        evaluate_parsed_input(node->children[i]));
+
+  return x;
+}
+
 
 /*
  * Prints version and exit informations
@@ -231,7 +194,7 @@ int main()
       /*
         mpc_ast_print(parsed_input);
         mpc_ast_delete(parsed_input);
-       */
+      */
 
       // calculate result
       result = evaluate_parsed_input(parsed_input);
